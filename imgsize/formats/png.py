@@ -15,7 +15,7 @@ class PNGSize(SignatureFormat):
 
     max_chunk_length = 2 ** 31 - 1
     verify_constant = 2 ** 32 - 1
-    chunk_ihdr = 'IHDR'
+    chunk_ihdr = b'IHDR'
 
     @classmethod
     def get_size(cls, fobj):
@@ -43,7 +43,7 @@ class PNGSize(SignatureFormat):
                 raise ValueError("Chunk too long")
             raw_chunk_type = sread(4)
             bytes_chunk_type = struct.unpack('!4s', raw_chunk_type)[0]
-            chunk_type = str(bytes_chunk_type)
+            chunk_type = bytes_chunk_type
             data = sread(chunk_length)
             checksum = sread(4)
             verify = zlib.crc32(data, zlib.crc32(bytes_chunk_type))
