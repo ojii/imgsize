@@ -3,6 +3,32 @@
 Pure Python library to get the size of image files. Supports JPG, PNG, GIF and
 BMP, though some files in those formats may not be supported.
 
+## Why
+
+For fun. Also, because if all you need is the size of an image, pulling in
+Pillow is overkill. While Pillow is a fantastic library, it relies on quite a
+few C libraries, making it a somewhat "heavy" dependency. If you need to work
+with images, it's great, but if all you need is the size, maybe something a
+bit more lightweight is more suited.
+
+It is also quite a bit faster than Pillow (for getting the size), as it does
+no actual decoding of image data and stops doing anything as soon as the
+size information is found.
+
+### Benchmarks
+
+Note that benchmarks are a lie. But for what it's worth, here's the time it
+took on my machine to read the image size of four different formats 10'000
+times:
+
+| format   |   imgsize |   pillow | speedup |
+| -------- | --------- | -------- | --------- |
+| jpg      |    0.3220 |   1.1276 | 3.50x |
+| png      |    0.2856 |   0.8805 | 3.08x | 
+| gif      |    0.2052 |   0.9481 | 4.62x |
+| bmp      |    0.2435 |   0.6003 | 2.46x |
+
+
 ## Usage
 
 ```python
