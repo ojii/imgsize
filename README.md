@@ -40,6 +40,8 @@ with io.open('/path/to/your/image', 'rb') as fobj:
     width, height = get_size(fobj)
 ```
 
+You can also use it from the command line using `python -m imgsize <path>`.
+
 ## Extend
 
 You can extend imgsize with new formats. In this example, we assume an image
