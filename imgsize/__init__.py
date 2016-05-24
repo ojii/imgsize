@@ -1,10 +1,11 @@
 from __future__ import absolute_import
 
-from .core import ImageSize
+from .core import ImageSize, UnknownSize
 from .formats import jpg, gif, png, bmp
 
 __all__ = (
     'get_size',
+    'UnknownSize',
 )
 
 DEFAULT = ImageSize()
