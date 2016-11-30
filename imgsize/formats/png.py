@@ -13,8 +13,8 @@ VERIFY_CONSTANT = 2 ** 32 - 1
 CHUNK_IHDR = b'IHDR'  # Image HeaDeR
 SIGNATURE = struct.pack('8B', 0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a)
 
-ChunkLength = Struct('!I', True)
-BytesChunkType = Struct('!4s', True)
+ChunkLength = Struct('!I')
+BytesChunkType = Struct('!4s')
 Size = Struct('!II')
 
 
@@ -37,10 +37,10 @@ def get_size(fobj):
     width, height = None, None
 
     while width is None or height is None:
-        chunk_length = ChunkLength.unpack_from(fobj)
+        chunk_length = ChunkLength.unpack_single_from(fobj)
         if chunk_length > MAX_CHUNK_LENGTH:
             raise ValueError("Chunk too long")
-        bytes_chunk_type = BytesChunkType.unpack_from(fobj)
+        bytes_chunk_type = BytesChunkType.unpack_single_from(fobj)
         chunk_type = bytes_chunk_type
         data = sread(chunk_length)
         checksum = sread(4)

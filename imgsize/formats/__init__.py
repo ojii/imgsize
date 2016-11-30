@@ -7,16 +7,9 @@ from ..core import WrongFormat
 
 
 class Struct(object):
-    def __init__(self, fmt, single=False):
+    def __init__(self, fmt):
         self.fmt = fmt
         self.size = struct.calcsize(fmt)
-        if single:
-            self.unpack_from = self.unpack_from_single
-        else:
-            self.unpack_from = self.unpack_from_many
-
-    def unpack(self, data):
-        return struct.unpack(self.fmt, data)
 
     def safe_read(self, fobj):
         data = fobj.read(self.size)
@@ -29,12 +22,18 @@ class Struct(object):
             )
         return data
 
-    def unpack_from_many(self, fobj):
+    def unpack(self, data):
+        return struct.unpack(self.fmt, data)
+
+    def unpack_single(self, data):
+        return self.unpack(data)[0]
+
+    def unpack_from(self, fobj):
         data = self.safe_read(fobj)
         return self.unpack(data)
 
-    def unpack_from_single(self, fobj):
-        return self.unpack_from_many(fobj)[0]
+    def unpack_single_from(self, fobj):
+        return self.unpack_from(fobj)[0]
 
 
 def signature(name, *candidates):
