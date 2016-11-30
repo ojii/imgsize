@@ -2,46 +2,46 @@ from __future__ import absolute_import
 
 import struct
 
-from . import SignatureFormat
+from . import signature
 from ..core import UnknownSize
 
 
-class JPGSize(SignatureFormat):
-    signature = struct.pack('3B', 0xff, 0xd8, 0xff)
+SOI = 0xd8
+SOF0 = 0xc0
+SOF1 = 0xc1
 
-    soi = 0xd8
-    sof0 = 0xc0
-    sof1 = 0xc1
 
-    @classmethod
-    def get_size(cls, fobj):
-        def readbyte():
-            return ord(fobj.read(1))
+@signature('JPG', struct.pack('3B', 0xff, 0xd8, 0xff))
+def get_size(fobj):
+    fobj.seek(0)
 
-        def readword():
-            return (readbyte() << 8) + readbyte()
+    def readbyte():
+        return ord(fobj.read(1))
 
-        def readmarker():
-            if readbyte() != 255:
-                raise ValueError("Invalid marker")
-            return readbyte()
+    def readword():
+        return (readbyte() << 8) + readbyte()
 
-        def skipmarker():
-            length = readword()
-            fobj.read(length - 2)
+    def readmarker():
+        if readbyte() != 255:
+            raise ValueError("Invalid marker")
+        return readbyte()
 
-        width, height = None, None
+    def skipmarker():
+        length = readword()
+        fobj.read(length - 2)
 
-        while width is None or height is None:
-            marker = readmarker()
-            if marker == cls.soi:  # Start Of Image
-                pass
-            elif marker in (cls.sof0, cls.sof1):
-                readword()  # length
-                readbyte()  # precision
-                height = readword()
-                width = readword()
-                return width, height
-            else:
-                skipmarker()
-        raise UnknownSize()
+    width, height = None, None
+
+    while width is None or height is None:
+        marker = readmarker()
+        if marker == SOI:  # Start Of Image
+            pass
+        elif marker in (SOF0, SOF1):
+            readword()  # length
+            readbyte()  # precision
+            height = readword()
+            width = readword()
+            return width, height
+        else:
+            skipmarker()
+    raise UnknownSize()

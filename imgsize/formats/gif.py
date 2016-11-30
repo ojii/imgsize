@@ -1,16 +1,11 @@
 from __future__ import absolute_import
 
-import struct
-
-from . import SignatureFormat
+from . import signature, Struct
 
 
-class GIFSize(SignatureFormat):
-    signature = struct.pack('4B', 0x47, 0x49, 0x46, 0x38)
+Header = Struct('<HH')
 
-    @classmethod
-    def get_size(cls, fobj):
-        signature = fobj.read(6)
-        if signature not in (b'GIF87a', b'GIF89a'):
-            raise ValueError("Invalid GIF signature %r" % signature)
-        return struct.unpack('<HH', fobj.read(4))
+
+@signature('GIF', b'GIF87a', b'GIF89a')
+def get_size(fobj):
+    return Header.unpack_from(fobj)

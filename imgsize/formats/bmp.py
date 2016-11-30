@@ -2,24 +2,30 @@ from __future__ import absolute_import
 
 import struct
 
-from . import SignatureFormat
+from imgsize.core import WrongFormat
+from . import signature, Struct
+
+HeaderSize = Struct('<I', True)
+HeaderData5 = Struct('<II')
+HeaderDataCore = Struct('<HH')
+MODIFIER = 2**32
 
 
-class BMPSize(SignatureFormat):
-    signature = struct.pack('<2B', 0x42, 0x4D)
-
-    @classmethod
-    def get_size(cls, fobj):
-        signature = fobj.read(2)
-        if signature != cls.signature:
-            raise ValueError("Invalid BMP signature %r" % signature)
-        fobj.read(4)  # length
-        fobj.read(4)  # reserved
-        fobj.read(4)  # offset
-        fobj.read(4)  # header size
-        (width, height, nplanes, bits_per_pixel, compression_method, bmp_bytesz,
-         hres, vres, ncolors, nimpcolors
-         ) = struct.unpack_from('<IihhiiIIii', fobj.read(36))
-        if nplanes != 1:
-            raise ValueError("Unexpected nplanes %s" % nplanes)
+@signature('BMP', struct.pack('<2B', 0x42, 0x4D))
+def get_size(fobj):
+    fobj.seek(14)  # skip 14 bytes header
+    header_size = HeaderSize.unpack_from(fobj)
+    if header_size == 12:
+        return HeaderDataCore.unpack_from(fobj)
+    elif header_size in (40, 64, 108, 124):
+        data = HeaderData5.safe_read(fobj)
+        width, height = HeaderData5.unpack(data)
+        if data[7] == 0xff:
+            height = MODIFIER - height
         return width, height
+    else:
+        raise WrongFormat(
+            'Unknown or unsupported BMP header size {size}'.format(
+                size=header_size
+            )
+        )

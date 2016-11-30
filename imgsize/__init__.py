@@ -9,9 +9,9 @@ __all__ = (
 )
 
 DEFAULT = ImageSize()
-DEFAULT.register(jpg.JPGSize)
-DEFAULT.register(gif.GIFSize)
-DEFAULT.register(png.PNGSize)
-DEFAULT.register(bmp.BMPSize)
+DEFAULT.register(jpg.get_size)
+DEFAULT.register(gif.get_size)
+DEFAULT.register(png.get_size)
+DEFAULT.register(bmp.get_size)
 
 get_size = DEFAULT.get_size

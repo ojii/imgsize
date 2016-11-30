@@ -54,19 +54,13 @@ For that format, we would write this class:
 ```python
 import struct
 
-from imgsize.formats import SignatureFormat
+from imgsize.formats import signature, Struct
 
+Size = Struct('<II')
 
-class ExampleFormat(SignatureFormat):
-    signature = struct.pack('<BBBBBBB', 0x64, 0x78, 0x61, 0x6d, 0x70, 0x6c, 0x65)
-    
-    @classmethod
-    def get_size(cls, fobj):
-        signature = fobj.read(7)
-        if signature != cls.signature:
-            raise ValueError("Invalid signature %r" % signature)
-        width, height = struct.unpack('<II', fobj.read(2))
-        return width, height
+@signature('Example', struct.pack('<BBBBBBB', 0x64, 0x78, 0x61, 0x6d, 0x70, 0x6c, 0x65))
+def get_size_example(cls, fobj):
+    return Size.unpack_from(fobj)
 ```
 
 Now to use it (together with the built-in formats), use this code:
@@ -76,11 +70,11 @@ from imgsize.core import ImageSize
 from imgsize.formats import jpg, gif, png, bmp
 
 imgsize = ImageSize()
-imgsize.register(jpg.JPGSize)
-imgsize.register(gif.GIFSize)
-imgsize.register(png.PNGSize)
-imgsize.register(bmp.BMPSize)
-imgsize.register(ExampleFormat)
+imgsize.register(jpg.get_size)
+imgsize.register(gif.get_size)
+imgsize.register(png.get_size)
+imgsize.register(bmp.get_size)
+imgsize.register(get_size_example)
 
 with io.open('/path/to/image', 'rb') as fobj:
     width, height = imgsize.get_size(fobj)

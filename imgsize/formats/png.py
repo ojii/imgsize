@@ -4,57 +4,53 @@ import struct
 
 import zlib
 
-from . import SignatureFormat
+from . import signature, Struct
 from ..core import UnknownSize
 
 
-class PNGSize(SignatureFormat):
-    signature = struct.pack(
-        '8B', 0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a
-    )
+MAX_CHUNK_LENGTH = 2 ** 31 - 1
+VERIFY_CONSTANT = 2 ** 32 - 1
+CHUNK_IHDR = b'IHDR'  # Image HeaDeR
+SIGNATURE = struct.pack('8B', 0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a)
 
-    max_chunk_length = 2 ** 31 - 1
-    verify_constant = 2 ** 32 - 1
-    chunk_ihdr = b'IHDR'
+ChunkLength = Struct('!I', True)
+BytesChunkType = Struct('!4s', True)
+Size = Struct('!II')
 
-    @classmethod
-    def get_size(cls, fobj):
-        def sread(num):
-            """
-            reads num bytes and checks that the returned length matches
-            """
-            data = fobj.read(num)
-            if len(data) != num:
-                raise ValueError(
-                    "Expected to read %s, got %s instead" % (num, len(data))
+
+@signature('PNG', SIGNATURE)
+def get_size(fobj):
+    def sread(num):
+        """
+        reads num bytes and checks that the returned length matches
+        """
+        data = fobj.read(num)
+        if len(data) != num:
+            raise ValueError(
+                'Expected to read {num}, got {got} instead'.format(
+                    num=num,
+                    got=len(data)
                 )
-            return data
+            )
+        return data
 
-        signature = fobj.read(8)
-        if signature != cls.signature:
-            raise ValueError("Invalid signature %r" % signature)
+    width, height = None, None
 
-        width, height = None, None
-
-        while width is None or height is None:
-            raw_chunk_length = sread(4)
-            chunk_length = struct.unpack('!I', raw_chunk_length)[0]
-            if chunk_length > cls.max_chunk_length:
-                raise ValueError("Chunk too long")
-            raw_chunk_type = sread(4)
-            bytes_chunk_type = struct.unpack('!4s', raw_chunk_type)[0]
-            chunk_type = bytes_chunk_type
-            data = sread(chunk_length)
-            checksum = sread(4)
-            verify = zlib.crc32(data, zlib.crc32(bytes_chunk_type))
-            verify &= cls.verify_constant
-            verify = struct.pack('!I', verify)
-            if checksum != verify:
-                raise ValueError("Checksum error")
-            if chunk_type == cls.chunk_ihdr:  # IHDR = Image HeaDeR
-                if chunk_length != 13:
-                    raise ValueError("Invalid IHDR length")
-                (width, height, bit_depth, color_type, compression_method,
-                 filter_method, interlace_method) = struct.unpack('!2I5B', data)
-                return width, height
-        raise UnknownSize()
+    while width is None or height is None:
+        chunk_length = ChunkLength.unpack_from(fobj)
+        if chunk_length > MAX_CHUNK_LENGTH:
+            raise ValueError("Chunk too long")
+        bytes_chunk_type = BytesChunkType.unpack_from(fobj)
+        chunk_type = bytes_chunk_type
+        data = sread(chunk_length)
+        checksum = sread(4)
+        verify = zlib.crc32(data, zlib.crc32(bytes_chunk_type))
+        verify &= VERIFY_CONSTANT
+        verify = struct.pack('!I', verify)
+        if checksum != verify:
+            raise ValueError("Checksum error")
+        if chunk_type == CHUNK_IHDR:
+            if chunk_length != 13:
+                raise ValueError("Invalid IHDR length")
+            return Size.unpack(data[:Size.size])
+    raise UnknownSize()
