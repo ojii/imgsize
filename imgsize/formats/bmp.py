@@ -21,8 +21,7 @@ def get_size(fobj):
     elif header_size in (40, 64, 108, 124):
         data = HeaderData5.safe_read(fobj)
         width, height = HeaderData5.unpack(data)
-        print(YFlip.unpack_single(data[7]))
-        if YFlip.unpack_single(data[7]) == 0xff:
+        if YFlip.unpack_single(data[7:8]) == 0xff:
             height = MODIFIER - height
         return width, height
     else:
