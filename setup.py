@@ -4,7 +4,7 @@ setup(
     name='imgsize',
     author='Jonas Obrist',
     license='BSD',
-    version='1.1',
+    version='2.0',
     test_suite='imgsize.tests',
     packages=find_packages(),
     classifiers=[
