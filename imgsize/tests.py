@@ -3,14 +3,23 @@ from __future__ import absolute_import
 import io
 import json
 import os
+import struct
 import unittest
 
-from . import get_size
+from imgsize.formats import jpg
+from . import get_size, UnknownSize
 
 TEST_DATA_DIR = os.path.join(
     os.path.abspath(os.path.dirname(__file__)),
     'testdata',
 )
+
+
+class UnitTests(unittest.TestCase):
+    def test_jpg_get_size_invalid_marker(self):
+        bio = io.BufferedReader(io.BytesIO(struct.pack('5B', 0xff, 0xd8, 0xff, 0xd8, 0xab)))
+        with self.assertRaises(UnknownSize):
+            jpg.get_size(bio)
 
 
 class Base(unittest.TestCase):

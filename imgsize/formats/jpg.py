@@ -11,6 +11,10 @@ SOF0 = 0xc0
 SOF1 = 0xc1
 
 
+class InvalidMarker(ValueError):
+    pass
+
+
 @signature('JPG', struct.pack('3B', 0xff, 0xd8, 0xff))
 def get_size(fobj):
     fobj.seek(0)
@@ -23,7 +27,7 @@ def get_size(fobj):
 
     def readmarker():
         if readbyte() != 255:
-            raise ValueError("Invalid marker")
+            raise InvalidMarker()
         return readbyte()
 
     def skipmarker():
@@ -33,7 +37,10 @@ def get_size(fobj):
     width, height = None, None
 
     while width is None or height is None:
-        marker = readmarker()
+        try:
+            marker = readmarker()
+        except InvalidMarker:
+            raise UnknownSize()
         if marker == SOI:  # Start Of Image
             pass
         elif marker in (SOF0, SOF1):
