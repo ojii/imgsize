@@ -1,81 +1,32 @@
 # imgsize
 
-Pure Python library to get the size of image files. Supports JPG, PNG, GIF and
-BMP, though some files in those formats may not be supported.
+Library to quickly get the type & dimensions of JPEG, PNG, BMP and GIF files.
 
-## Why
-
-For fun. Also, because if all you need is the size of an image, pulling in
-Pillow is overkill. While Pillow is a fantastic library, it relies on quite a
-few C libraries, making it a somewhat "heavy" dependency. If you need to work
-with images, it's great, but if all you need is the size, maybe something a
-bit more lightweight is more suited.
-
-It is also quite a bit faster than Pillow (for getting the size), as it does
-no actual decoding of image data and stops doing anything as soon as the
-size information is found.
-
-### Benchmarks
-
-Note that benchmarks are a lie. But for what it's worth, here's the time it
-took on my machine to read the image size of four different formats 10'000
-times:
-
-| format   |   imgsize |   pillow | speedup |
-| -------- | --------- | -------- | --------- |
-| jpg      |    0.3220 |   1.1276 | 3.50x |
-| png      |    0.2856 |   0.8805 | 3.08x | 
-| gif      |    0.2052 |   0.9481 | 4.62x |
-| bmp      |    0.2435 |   0.6003 | 2.46x |
-
-
-## Usage
+## Usage (Python)
 
 ```python
-import io
-
 from imgsize import get_size
 
-with io.open('/path/to/your/image', 'rb') as fobj:
-    width, height = get_size(fobj)
+some_image_data: bytes = ...
+
+size = get_size(some_image_data)
+if size is None:
+    print("Could not handle data")
+else:
+    size.width
+    size.height
+    size.mime_type
 ```
 
-You can also use it from the command line using `python -m imgsize <path>`.
+You don't need to pass the entire image data, the first kilobyte or so should suffice.
 
-## Extend
+## Building
 
-You can extend imgsize with new formats. In this example, we assume an image
-format with the magic number `0x64 0x78 0x61 0x6d 0x70 0x6c 0x65`, followed by
-an unsigned int for the width, followed by an unsigned int for the height. All
-values are little-endian.
+Use [maturin](https://www.maturin.rs/) to build: `maturin build`
 
-For that format, we would write this class:
+To build & install into your local env: `maturin develop`
 
-```python
-import struct
+## Testing
 
-from imgsize.formats import signature, Struct
+`cargo test`
 
-Size = Struct('<II')
-
-@signature('Example', struct.pack('<BBBBBBB', 0x64, 0x78, 0x61, 0x6d, 0x70, 0x6c, 0x65))
-def get_size_example(cls, fobj):
-    return Size.unpack_from(fobj)
-```
-
-Now to use it (together with the built-in formats), use this code:
-
-```python
-from imgsize.core import ImageSize
-from imgsize.formats import jpg, gif, png, bmp
-
-imgsize = ImageSize()
-imgsize.register(jpg.get_size)
-imgsize.register(gif.get_size)
-imgsize.register(png.get_size)
-imgsize.register(bmp.get_size)
-imgsize.register(get_size_example)
-
-with io.open('/path/to/image', 'rb') as fobj:
-    width, height = imgsize.get_size(fobj)
-```
