@@ -36,8 +36,10 @@ impl Size {
     }
 }
 
-const FORMATS: &'static [fn(&[u8]) -> Option<Size>] =
-    &[png::get_size, jpg::get_size, gif::get_size, bmp::get_size];
+type GetSize = fn(&[u8]) -> Option<Size>;
+
+const FORMATS: &[GetSize] = &[png::get_size, jpg::get_size, gif::get_size, bmp::get_size];
+
 pub fn get_size(data: &[u8]) -> Option<Size> {
     for format in FORMATS {
         if let Some(size) = format(data) {

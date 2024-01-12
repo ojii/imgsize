@@ -3,8 +3,8 @@ use crate::Size;
 use byteorder::{BigEndian, ReadBytesExt};
 use std::io::{Seek, SeekFrom};
 
-const MIME_TYPE: &'static str = "image/jpeg";
-const SIGNATURE: &'static [u8] = &[0xff, 0xd8, 0xff];
+const MIME_TYPE: &str = "image/jpeg";
+const SIGNATURE: &[u8] = &[0xff, 0xd8, 0xff];
 
 const START_OF_FRAMES: [u8; 13] = [
     0xc0, 0xc1, 0xc2, 0xc3, 0xc5, 0xc6, 0xc7, 0xc9, 0xca, 0xcb, 0xcd, 0xce, 0xcf,

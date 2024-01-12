@@ -5,8 +5,8 @@ use byteorder::{BigEndian, ReadBytesExt};
 use crate::utils::format_parser;
 use crate::Size;
 
-const MIME_TYPE: &'static str = "image/png";
-const SIGNATURE: &'static [u8] = &[0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a];
+const MIME_TYPE: &str = "image/png";
+const SIGNATURE: &[u8] = &[0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a];
 
 pub fn get_size(data: &[u8]) -> Option<Size> {
     format_parser(data, SIGNATURE, |mut cursor| {
@@ -34,7 +34,7 @@ pub fn get_size(data: &[u8]) -> Option<Size> {
                 // acTL
                 [0x61, 0x63, 0x54, 0x4c] => {
                     animated = true;
-                    if size != None {
+                    if size.is_some() {
                         break;
                     }
                     cursor.seek(SeekFrom::Current(chunk_length as i64 + 4))?;
