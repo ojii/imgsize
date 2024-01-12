@@ -23,6 +23,7 @@ pub fn get_size(data: &[u8]) -> Option<Size> {
                     width as u64,
                     height as u64,
                     MIME_TYPE.to_string(),
+                    false,
                 )));
             } else {
                 let length = cursor.read_u16::<BigEndian>()?;

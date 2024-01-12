@@ -1,5 +1,6 @@
 {
   "width": 400,
   "height": 400,
-  "mime_type": "image/gif"
+  "mime_type": "image/gif",
+  "is_animated": true
 }

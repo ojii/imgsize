@@ -1,14 +1,13 @@
 mod bmp;
-mod png;
 mod gif;
-mod utils;
 mod jpg;
+mod png;
+mod utils;
 
 use pyo3::prelude::*;
 
 #[cfg(test)]
 use serde::Deserialize;
-
 
 #[pyclass(get_all)]
 #[derive(Debug, Eq, PartialEq)]
@@ -17,13 +16,19 @@ pub struct Size {
     pub width: u64,
     pub height: u64,
     pub mime_type: String,
+    pub is_animated: bool,
 }
 
 #[pymethods]
 impl Size {
     #[new]
-    fn new(width: u64, height: u64, mime_type: String) -> Self {
-        Self {width, height, mime_type}
+    fn new(width: u64, height: u64, mime_type: String, is_animated: bool) -> Self {
+        Self {
+            width,
+            height,
+            mime_type,
+            is_animated,
+        }
     }
 
     fn __repr__(&self) -> String {
@@ -31,16 +36,12 @@ impl Size {
     }
 }
 
-const FORMATS: &'static [fn(&[u8]) -> Option<Size>] = &[
-    png::get_size,
-    jpg::get_size,
-    gif::get_size,
-    bmp::get_size,
-];
+const FORMATS: &'static [fn(&[u8]) -> Option<Size>] =
+    &[png::get_size, jpg::get_size, gif::get_size, bmp::get_size];
 pub fn get_size(data: &[u8]) -> Option<Size> {
     for format in FORMATS {
         if let Some(size) = format(data) {
-            return Some(size)
+            return Some(size);
         }
     }
     None
@@ -78,10 +79,18 @@ mod tests {
     }
 
     #[test]
-    fn test_gif() {
+    fn test_animated_gif() {
         check(
             include_bytes!("test-data/example.gif.input"),
             include_bytes!("test-data/example.gif.output"),
+        )
+    }
+
+    #[test]
+    fn test_gif() {
+        check(
+            include_bytes!("test-data/example2.gif.input"),
+            include_bytes!("test-data/example2.gif.output"),
         )
     }
 
@@ -106,7 +115,14 @@ mod tests {
         check(
             include_bytes!("test-data/example.png.input"),
             include_bytes!("test-data/example.png.output"),
-        )
+        );
     }
 
+    #[test]
+    fn test_apng() {
+        check(
+            include_bytes!("test-data/example.apng.input"),
+            include_bytes!("test-data/example.apng.output"),
+        );
+    }
 }

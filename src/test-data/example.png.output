@@ -1,5 +1,6 @@
 {
   "width": 800,
   "height": 600,
-  "mime_type": "image/png"
+  "mime_type": "image/png",
+  "is_animated": false
 }
