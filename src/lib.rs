@@ -1,7 +1,8 @@
-mod bmp;
-mod gif;
-mod jpg;
-mod png;
+pub mod avif;
+pub mod bmp;
+pub mod gif;
+pub mod jpg;
+pub mod png;
 mod utils;
 
 use pyo3::prelude::*;
@@ -38,7 +39,13 @@ impl Size {
 
 type GetSize = fn(&[u8]) -> Option<Size>;
 
-const FORMATS: &[GetSize] = &[png::get_size, jpg::get_size, gif::get_size, bmp::get_size];
+const FORMATS: &[GetSize] = &[
+    png::get_size,
+    jpg::get_size,
+    gif::get_size,
+    avif::get_size,
+    bmp::get_size,
+];
 
 pub fn get_size(data: &[u8]) -> Option<Size> {
     for format in FORMATS {
@@ -125,6 +132,13 @@ mod tests {
         check(
             include_bytes!("test-data/example.apng.input"),
             include_bytes!("test-data/example.apng.output"),
+        );
+    }
+    #[test]
+    fn test_avif() {
+        check(
+            include_bytes!("test-data/example.avif.input"),
+            include_bytes!("test-data/example.avif.output"),
         );
     }
 }
