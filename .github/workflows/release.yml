@@ -8,10 +8,7 @@ name: Release
 on:
   push:
     branches:
-      - main
-      - master
-    tags:
-      - '*'
+      - riir
   pull_request:
   workflow_dispatch:
 
@@ -105,7 +102,7 @@ jobs:
   release:
     name: Release
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/riir'
+#    if: github.ref == 'refs/heads/riir'
     needs: [linux, windows, macos, sdist]
     environment: release
     permissions:
