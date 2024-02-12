@@ -2,14 +2,13 @@ use std::io::{Read, Seek, SeekFrom};
 
 use byteorder::{BigEndian, ReadBytesExt};
 
-use crate::utils::format_parser;
+use crate::utils::cursor_parser;
 use crate::Size;
 
 const MIME_TYPE: &str = "image/png";
-const SIGNATURE: &[u8] = &[0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a];
 
 pub fn get_size(data: &[u8]) -> Option<Size> {
-    format_parser(data, SIGNATURE, |mut cursor| {
+    cursor_parser(data, |mut cursor| {
         cursor.seek(SeekFrom::Start(8))?;
         let mut chunk_type_buf = [0u8; 4];
         let mut size = None;

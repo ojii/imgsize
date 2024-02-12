@@ -37,23 +37,17 @@ impl Size {
     }
 }
 
-type GetSize = fn(&[u8]) -> Option<Size>;
-
-const FORMATS: &[GetSize] = &[
-    png::get_size,
-    jpg::get_size,
-    gif::get_size,
-    avif::get_size,
-    bmp::get_size,
-];
-
 pub fn get_size(data: &[u8]) -> Option<Size> {
-    for format in FORMATS {
-        if let Some(size) = format(data) {
-            return Some(size);
+    match data.get(0..8)? {
+        [0x89, b'P', b'N', b'G', 0x0d, 0x0a, 0x1a, 0x0a] => png::get_size(data),
+        [0xff, 0xd8, 0xff, _, _, _, _, _] => jpg::get_size(data),
+        [b'G', b'I', b'F', b'8', b'7', b'a', _, _] | [b'G', b'I', b'F', b'8', b'9', b'a', _, _] => {
+            gif::get_size(data)
         }
+        [_, _, _, _, b'f', b't', b'y', b'p'] => avif::get_size(data),
+        [b'B', b'M', _, _, _, _, _, _] => bmp::get_size(data),
+        _ => None,
     }
-    None
 }
 
 #[pyfunction]
