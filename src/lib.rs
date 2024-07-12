@@ -6,12 +6,15 @@ pub mod png;
 mod utils;
 
 use pyo3::prelude::*;
+use std::array::IntoIter;
+use std::collections::hash_map::DefaultHasher;
+use std::hash::{Hash, Hasher};
 
 #[cfg(test)]
 use serde::Deserialize;
 
 #[pyclass(get_all)]
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug, Eq, PartialEq, Hash)]
 #[cfg_attr(test, derive(Deserialize))]
 pub struct Size {
     pub width: u64,
@@ -34,6 +37,39 @@ impl Size {
 
     fn __repr__(&self) -> String {
         format!("{:?}", self)
+    }
+
+    fn __eq__(&self, other: &Self) -> bool {
+        self == other
+    }
+
+    fn __iter__(slf: PyRef<'_, Self>) -> PyResult<Py<SizeIter>> {
+        let itr = SizeIter {
+            inner: [slf.width, slf.height].into_iter(),
+        };
+        Py::new(slf.py(), itr)
+    }
+
+    fn __hash__(&self) -> u64 {
+        let mut hasher = DefaultHasher::new();
+        self.hash(&mut hasher);
+        hasher.finish()
+    }
+}
+
+#[pyclass]
+struct SizeIter {
+    inner: IntoIter<u64, 2>,
+}
+
+#[pymethods]
+impl SizeIter {
+    fn __iter__(slf: PyRef<'_, Self>) -> PyRef<'_, Self> {
+        slf
+    }
+
+    fn __next__(mut slf: PyRefMut<'_, Self>) -> Option<u64> {
+        slf.inner.next()
     }
 }
 

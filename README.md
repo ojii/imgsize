@@ -16,9 +16,10 @@ else:
     size.width
     size.height
     size.mime_type
+    size.is_animated
 ```
 
-You don't need to pass the entire image data, the first kilobyte or so should suffice.
+You should not pass the entire image data, the first kilobyte or so should suffice.
 
 ## Building
 
