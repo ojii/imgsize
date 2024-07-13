@@ -93,7 +93,7 @@ fn py_get_size(data: &[u8]) -> PyResult<Option<Size>> {
 }
 
 #[pymodule]
-fn imgsize(_py: Python, m: &PyModule) -> PyResult<()> {
+fn imgsize(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(py_get_size, m)?)?;
     m.add_class::<Size>()?;
     Ok(())
