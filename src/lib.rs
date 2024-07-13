@@ -102,73 +102,36 @@ fn imgsize(_py: Python, m: &PyModule) -> PyResult<()> {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    fn check(data: &[u8], output: &[u8]) {
-        let output: Size = serde_json::from_slice(output).unwrap();
-        let size = get_size(data);
-        assert_eq!(size, Some(output));
+    use paste::paste;
+    macro_rules! define_test {
+        ($name:ident) => {
+            paste! {
+                #[test]
+                fn [<test_ $name>]() {
+                    let output: Size = serde_json::from_slice(include_bytes!(concat!(
+                        "test-data/",
+                        stringify!($name),
+                        ".output"
+                    )))
+                    .unwrap();
+                    let size = get_size(include_bytes!(concat!(
+                        "test-data/",
+                        stringify!($name),
+                        ".input"
+                    )));
+                    assert_eq!(size, Some(output));
+                }
+            }
+        };
     }
 
-    #[test]
-    fn test_bmp() {
-        check(
-            include_bytes!("test-data/example.bmp.input"),
-            include_bytes!("test-data/example.bmp.output"),
-        )
-    }
-
-    #[test]
-    fn test_animated_gif() {
-        check(
-            include_bytes!("test-data/example.gif.input"),
-            include_bytes!("test-data/example.gif.output"),
-        )
-    }
-
-    #[test]
-    fn test_gif() {
-        check(
-            include_bytes!("test-data/example2.gif.input"),
-            include_bytes!("test-data/example2.gif.output"),
-        )
-    }
-
-    #[test]
-    fn test_jpg() {
-        check(
-            include_bytes!("test-data/example.jpg.input"),
-            include_bytes!("test-data/example.jpg.output"),
-        )
-    }
-
-    #[test]
-    fn test_jpg2() {
-        check(
-            include_bytes!("test-data/hackerman.jpeg.input"),
-            include_bytes!("test-data/hackerman.jpeg.output"),
-        )
-    }
-
-    #[test]
-    fn test_png() {
-        check(
-            include_bytes!("test-data/example.png.input"),
-            include_bytes!("test-data/example.png.output"),
-        );
-    }
-
-    #[test]
-    fn test_apng() {
-        check(
-            include_bytes!("test-data/example.apng.input"),
-            include_bytes!("test-data/example.apng.output"),
-        );
-    }
-    #[test]
-    fn test_avif() {
-        check(
-            include_bytes!("test-data/example.avif.input"),
-            include_bytes!("test-data/example.avif.output"),
-        );
-    }
+    define_test!(bmp);
+    define_test!(gifanim);
+    define_test!(gif);
+    define_test!(jpg);
+    define_test!(jpeg);
+    define_test!(png);
+    define_test!(apng);
+    define_test!(avif);
+    define_test!(avis);
 }

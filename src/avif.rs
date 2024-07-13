@@ -3,8 +3,14 @@ use crate::Size;
 const MIME_TYPE: &str = "image/avif";
 pub fn get_size(data: &[u8]) -> Option<Size> {
     let mut itr = BMFFBoxIter::new(data);
-    itr.next_typed(b"ftyp")
-        .filter(|ftyp| ftyp.data.starts_with(b"avif"))?;
+    let animated = itr.next_typed(b"ftyp").and_then(|bmff| {
+        let ftyp = FTYP::maybe_from(bmff)?;
+        match ftyp.major_brand {
+            b"avif" => Some(ftyp.minor_brands.contains(&b"avis")),
+            b"avis" => Some(true),
+            _ => None,
+        }
+    })?;
     let meta = itr.next_typed(b"meta")?;
     let iprp = meta.find_inner_box_after(b"iprp", 4)?;
     let ipco = iprp.find_inner_box(b"ipco")?;
@@ -15,8 +21,30 @@ pub fn get_size(data: &[u8]) -> Option<Size> {
         width as u64,
         height as u64,
         MIME_TYPE.to_string(),
-        false,
+        animated,
     ))
+}
+
+#[derive(Debug)]
+struct FTYP<'a> {
+    major_brand: &'a [u8; 4],
+    minor_brands: Vec<&'a [u8; 4]>,
+}
+
+impl<'a> FTYP<'a> {
+    fn maybe_from(bmff: BMFFBox<'a>) -> Option<Self> {
+        let num_minors = (bmff.data.len() - 8) / 4;
+        let mut minors = Vec::with_capacity(num_minors);
+        for index in 0..num_minors {
+            let start = 8 + (index * 4);
+            let end = start + 4;
+            minors.push(bmff.data.get(start..end)?.try_into().ok()?);
+        }
+        Some(Self {
+            major_brand: bmff.data.get(..4)?.try_into().ok()?,
+            minor_brands: minors,
+        })
+    }
 }
 
 struct BMFFBoxIter<'a> {
