@@ -4,7 +4,7 @@ const MIME_TYPE: &str = "image/avif";
 pub fn get_size(data: &[u8]) -> Option<Size> {
     let mut itr = BMFFBoxIter::new(data);
     let animated = itr.next_typed(b"ftyp").and_then(|bmff| {
-        let ftyp = FTYP::maybe_from(bmff)?;
+        let ftyp = Ftyp::maybe_from(bmff)?;
         match ftyp.major_brand {
             b"avif" => Some(ftyp.minor_brands.contains(&b"avis")),
             b"avis" => Some(true),
@@ -26,12 +26,12 @@ pub fn get_size(data: &[u8]) -> Option<Size> {
 }
 
 #[derive(Debug)]
-struct FTYP<'a> {
+struct Ftyp<'a> {
     major_brand: &'a [u8; 4],
     minor_brands: Vec<&'a [u8; 4]>,
 }
 
-impl<'a> FTYP<'a> {
+impl<'a> Ftyp<'a> {
     fn maybe_from(bmff: BMFFBox<'a>) -> Option<Self> {
         let num_minors = (bmff.data.len() - 8) / 4;
         let mut minors = Vec::with_capacity(num_minors);
@@ -121,5 +121,5 @@ impl<'a> BMFFBox<'a> {
 fn get_u32(data: &[u8], start: usize) -> Option<u32> {
     data.get(start..start + 4)
         .and_then(|bytes| bytes.try_into().ok())
-        .map(|arr| u32::from_be_bytes(arr))
+        .map(u32::from_be_bytes)
 }
