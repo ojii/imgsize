@@ -30,5 +30,6 @@ jobs:
       - name: Python Tests
         run: |
           python -m venv env
-          env/bin/pip install '.[test]'
-          env/bin/pytest python-tests
+          source env/bin/activate
+          pip install '.[test]'
+          pytest python-tests
