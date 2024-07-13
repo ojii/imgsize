@@ -2,14 +2,13 @@ use std::io::{Seek, SeekFrom};
 
 use byteorder::{LittleEndian, ReadBytesExt};
 
-use crate::utils::format_parser;
+use crate::utils::cursor_parser;
 use crate::Size;
 
 const MIME_TYPE: &str = "image/bmp";
-const SIGNATURE: &[u8] = &[0x42, 0x4D];
 
 pub fn get_size(data: &[u8]) -> Option<Size> {
-    format_parser(data, SIGNATURE, |mut cursor| {
+    cursor_parser(data, |mut cursor| {
         cursor.seek(SeekFrom::Start(14))?;
         let header_size = cursor.read_u32::<LittleEndian>()?;
         match header_size {

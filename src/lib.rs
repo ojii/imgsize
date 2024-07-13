@@ -1,16 +1,20 @@
-mod bmp;
-mod gif;
-mod jpg;
-mod png;
+pub mod avif;
+pub mod bmp;
+pub mod gif;
+pub mod jpg;
+pub mod png;
 mod utils;
 
 use pyo3::prelude::*;
+use std::array::IntoIter;
+use std::collections::hash_map::DefaultHasher;
+use std::hash::{Hash, Hasher};
 
 #[cfg(test)]
 use serde::Deserialize;
 
 #[pyclass(get_all)]
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug, Eq, PartialEq, Hash)]
 #[cfg_attr(test, derive(Deserialize))]
 pub struct Size {
     pub width: u64,
@@ -34,19 +38,52 @@ impl Size {
     fn __repr__(&self) -> String {
         format!("{:?}", self)
     }
+
+    fn __eq__(&self, other: &Self) -> bool {
+        self == other
+    }
+
+    fn __iter__(slf: PyRef<'_, Self>) -> PyResult<Py<SizeIter>> {
+        let itr = SizeIter {
+            inner: [slf.width, slf.height].into_iter(),
+        };
+        Py::new(slf.py(), itr)
+    }
+
+    fn __hash__(&self) -> u64 {
+        let mut hasher = DefaultHasher::new();
+        self.hash(&mut hasher);
+        hasher.finish()
+    }
 }
 
-type GetSize = fn(&[u8]) -> Option<Size>;
+#[pyclass]
+struct SizeIter {
+    inner: IntoIter<u64, 2>,
+}
 
-const FORMATS: &[GetSize] = &[png::get_size, jpg::get_size, gif::get_size, bmp::get_size];
+#[pymethods]
+impl SizeIter {
+    fn __iter__(slf: PyRef<'_, Self>) -> PyRef<'_, Self> {
+        slf
+    }
+
+    fn __next__(mut slf: PyRefMut<'_, Self>) -> Option<u64> {
+        slf.inner.next()
+    }
+}
 
 pub fn get_size(data: &[u8]) -> Option<Size> {
-    for format in FORMATS {
-        if let Some(size) = format(data) {
-            return Some(size);
+    match data.get(0..8)? {
+        [0x89, b'P', b'N', b'G', 0x0d, 0x0a, 0x1a, 0x0a] => png::get_size(data),
+        [0xff, 0xd8, 0xff, _, _, _, _, _] => jpg::get_size(data),
+        [b'G', b'I', b'F', b'8', b'7', b'a', _, _] | [b'G', b'I', b'F', b'8', b'9', b'a', _, _] => {
+            gif::get_size(data)
         }
+        [_, _, _, _, b'f', b't', b'y', b'p'] => avif::get_size(data),
+        [b'B', b'M', _, _, _, _, _, _] => bmp::get_size(data),
+        _ => None,
     }
-    None
 }
 
 #[pyfunction]
@@ -65,66 +102,36 @@ fn imgsize(_py: Python, m: &PyModule) -> PyResult<()> {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    fn check(data: &[u8], output: &[u8]) {
-        let output: Size = serde_json::from_slice(output).unwrap();
-        let size = get_size(data);
-        assert_eq!(size, Some(output));
+    use paste::paste;
+    macro_rules! define_test {
+        ($name:ident) => {
+            paste! {
+                #[test]
+                fn [<test_ $name>]() {
+                    let output: Size = serde_json::from_slice(include_bytes!(concat!(
+                        "test-data/",
+                        stringify!($name),
+                        ".output"
+                    )))
+                    .unwrap();
+                    let size = get_size(include_bytes!(concat!(
+                        "test-data/",
+                        stringify!($name),
+                        ".input"
+                    )));
+                    assert_eq!(size, Some(output));
+                }
+            }
+        };
     }
 
-    #[test]
-    fn test_bmp() {
-        check(
-            include_bytes!("test-data/example.bmp.input"),
-            include_bytes!("test-data/example.bmp.output"),
-        )
-    }
-
-    #[test]
-    fn test_animated_gif() {
-        check(
-            include_bytes!("test-data/example.gif.input"),
-            include_bytes!("test-data/example.gif.output"),
-        )
-    }
-
-    #[test]
-    fn test_gif() {
-        check(
-            include_bytes!("test-data/example2.gif.input"),
-            include_bytes!("test-data/example2.gif.output"),
-        )
-    }
-
-    #[test]
-    fn test_jpg() {
-        check(
-            include_bytes!("test-data/example.jpg.input"),
-            include_bytes!("test-data/example.jpg.output"),
-        )
-    }
-
-    #[test]
-    fn test_jpg2() {
-        check(
-            include_bytes!("test-data/hackerman.jpeg.input"),
-            include_bytes!("test-data/hackerman.jpeg.output"),
-        )
-    }
-
-    #[test]
-    fn test_png() {
-        check(
-            include_bytes!("test-data/example.png.input"),
-            include_bytes!("test-data/example.png.output"),
-        );
-    }
-
-    #[test]
-    fn test_apng() {
-        check(
-            include_bytes!("test-data/example.apng.input"),
-            include_bytes!("test-data/example.apng.output"),
-        );
-    }
+    define_test!(bmp);
+    define_test!(gifanim);
+    define_test!(gif);
+    define_test!(jpg);
+    define_test!(jpeg);
+    define_test!(png);
+    define_test!(apng);
+    define_test!(avif);
+    define_test!(avis);
 }

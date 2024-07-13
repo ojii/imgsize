@@ -1,17 +1,17 @@
-use crate::utils::format_parser;
-use crate::Size;
-use byteorder::{BigEndian, ReadBytesExt};
 use std::io::{Seek, SeekFrom};
 
-const MIME_TYPE: &str = "image/jpeg";
-const SIGNATURE: &[u8] = &[0xff, 0xd8, 0xff];
+use byteorder::{BigEndian, ReadBytesExt};
 
+use crate::utils::cursor_parser;
+use crate::Size;
+
+const MIME_TYPE: &str = "image/jpeg";
 const START_OF_FRAMES: [u8; 13] = [
     0xc0, 0xc1, 0xc2, 0xc3, 0xc5, 0xc6, 0xc7, 0xc9, 0xca, 0xcb, 0xcd, 0xce, 0xcf,
 ];
 
 pub fn get_size(data: &[u8]) -> Option<Size> {
-    format_parser(data, SIGNATURE, |mut cursor| {
+    cursor_parser(data, |mut cursor| {
         cursor.seek(SeekFrom::Start(3))?;
         loop {
             let marker = cursor.read_u8()?;
