@@ -19,7 +19,14 @@ jobs:
         run: |
           cargo fmt -- --check
           cargo clippy -- --deny warnings
-      - name: Test
+      - name: Rust Test
         run: |
           cargo check
           cargo test
+
+      - uses: actions/setup-python@v4
+      - name: Python Tests
+        run: |
+          python -m venv env
+          env/bin/pip install '.[test]'
+          env/bin/pytest python-tests

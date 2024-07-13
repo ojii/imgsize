@@ -6,12 +6,12 @@ pub mod png;
 mod utils;
 
 use pyo3::prelude::*;
+use pyo3::types::PyDict;
+#[cfg(test)]
+use serde::Deserialize;
 use std::array::IntoIter;
 use std::collections::hash_map::DefaultHasher;
 use std::hash::{Hash, Hasher};
-
-#[cfg(test)]
-use serde::Deserialize;
 
 #[pyclass(get_all)]
 #[derive(Debug, Eq, PartialEq, Hash)]
@@ -54,6 +54,17 @@ impl Size {
         let mut hasher = DefaultHasher::new();
         self.hash(&mut hasher);
         hasher.finish()
+    }
+
+    fn as_dict(&self) -> PyResult<Py<PyDict>> {
+        Python::with_gil(|py| {
+            let dict = PyDict::new_bound(py);
+            dict.set_item("width", self.width)?;
+            dict.set_item("height", self.height)?;
+            dict.set_item("mime_type", self.mime_type.clone())?;
+            dict.set_item("is_animated", self.is_animated)?;
+            Ok(dict.unbind())
+        })
     }
 }
 

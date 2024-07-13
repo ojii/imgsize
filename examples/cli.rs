@@ -10,8 +10,8 @@ pub fn main() -> io::Result<()> {
         file.read(&mut buffer)?;
         match imgsize::get_size(&buffer) {
             Some(size) => println!(
-                "{}: {}x{} ({})",
-                path, size.width, size.height, size.mime_type
+                "{}: {}x{}, {}, animated={}",
+                path, size.width, size.height, size.mime_type, size.is_animated
             ),
             None => println!("{}: unsupported format", path),
         }

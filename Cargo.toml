@@ -7,9 +7,6 @@ edition = "2021"
 name = "imgsize"
 crate-type = ["cdylib", "lib"]
 
-[[bin]]
-name = "imgsize"
-
 [dependencies]
 byteorder = "1.5.0"
 pyo3 = "0.22.1"
