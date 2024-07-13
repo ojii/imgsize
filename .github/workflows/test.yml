@@ -30,6 +30,5 @@ jobs:
       - name: Python Tests
         run: |
           python -m venv env
-          env/bin/pip install maturin
           env/bin/pip install '.[test]'
           env/bin/pytest python-tests
