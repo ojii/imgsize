@@ -97,6 +97,10 @@ pub fn get_size(data: &[u8]) -> Option<Size> {
     }
 }
 
+/// Given the data in the bytes provided, attempts to determine the image format, size and whether it
+/// is an animated image or not, otherwise returns None.
+/// The data provided does not need to be the entire image data, the first kilobyte or so should
+/// suffice.
 #[pyfunction]
 #[pyo3(name = "get_size")]
 fn py_get_size(data: &[u8]) -> PyResult<Option<Size>> {
