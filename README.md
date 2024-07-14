@@ -1,81 +1,82 @@
 # imgsize
 
-Pure Python library to get the size of image files. Supports JPG, PNG, GIF and
-BMP, though some files in those formats may not be supported.
+Given some data, determines whether the data is likely an image and if so, what size and type it is and whether it is
+animated or not.
 
-## Why
+## Formats
 
-For fun. Also, because if all you need is the size of an image, pulling in
-Pillow is overkill. While Pillow is a fantastic library, it relies on quite a
-few C libraries, making it a somewhat "heavy" dependency. If you need to work
-with images, it's great, but if all you need is the size, maybe something a
-bit more lightweight is more suited.
+Supported formats:
 
-It is also quite a bit faster than Pillow (for getting the size), as it does
-no actual decoding of image data and stops doing anything as soon as the
-size information is found.
-
-### Benchmarks
-
-Note that benchmarks are a lie. But for what it's worth, here's the time it
-took on my machine to read the image size of four different formats 10'000
-times:
-
-| format   |   imgsize |   pillow | speedup |
-| -------- | --------- | -------- | --------- |
-| jpg      |    0.3220 |   1.1276 | 3.50x |
-| png      |    0.2856 |   0.8805 | 3.08x | 
-| gif      |    0.2052 |   0.9481 | 4.62x |
-| bmp      |    0.2435 |   0.6003 | 2.46x |
-
+* PNG/APNG
+* JPEG
+* GIF
+* AVIF/AVIS
+* BMP
 
 ## Usage
 
 ```python
-import io
-
 from imgsize import get_size
 
-with io.open('/path/to/your/image', 'rb') as fobj:
-    width, height = get_size(fobj)
+some_image_data: bytes = ...
+
+size = get_size(some_image_data)
+if size is None:
+    print("Could not handle data")
+else:
+    size.width
+    size.height
+    size.mime_type
+    size.is_animated
 ```
 
-You can also use it from the command line using `python -m imgsize <path>`.
+You should not pass the entire image data, the first kilobyte or so should suffice.
 
-## Extend
+### API
 
-You can extend imgsize with new formats. In this example, we assume an image
-format with the magic number `0x64 0x78 0x61 0x6d 0x70 0x6c 0x65`, followed by
-an unsigned int for the width, followed by an unsigned int for the height. All
-values are little-endian.
+#### `imgsize.get_size(data: bytes) -> imgsize.Size | None`
 
-For that format, we would write this class:
+Given the data in the bytes provided, attempts to determine the image format, size and whether it
+is an animated image or not, otherwise returns None.
 
-```python
-import struct
+#### `imgsize.Size`
 
-from imgsize.formats import signature, Struct
+A class with four properties: `width: int`, `height: int`, `mime_type: str`, `is_animated: bool`.
 
-Size = Struct('<II')
+Instances of `imgsize.Size` are equatable, hashable and iterable (yielding `width` and `height`).
 
-@signature('Example', struct.pack('<BBBBBBB', 0x64, 0x78, 0x61, 0x6d, 0x70, 0x6c, 0x65))
-def get_size_example(cls, fobj):
-    return Size.unpack_from(fobj)
+Instances of `imgsize.Size` have a `as_dict()` method which returns the properties as a dictionary.
+
+## Notes
+
+`imgsize` does not validate whether the data passed is a valid image or not. The intended use of
+this library is to reject data early and quickly if it does not appear to be an image format you
+intend to support. If you need to validate the entire image, the suggested workflow is to use this
+library to reject data that is not images, is not a file format you support, has dimensions beyond
+what you wish to support or is animated if you only want static images, then pass it to a library
+that does actual image parsing to determine if the data is actually an image.
+
+`imgsize` only supports a few formats, the supported formats is mostly based on what browsers support,
+and does not necessarily support all features or variants of those formats, as a result, there might be
+false positives and false negatives.
+
+## Building
+
+Use [maturin](https://www.maturin.rs/) to build: `maturin build`
+
+To build & install into your local env: `maturin develop`
+
+## Testing
+
+### Rust
+
+`cargo test`
+
+### Python
+
+The following must be run in a virtual env:
+
 ```
-
-Now to use it (together with the built-in formats), use this code:
-
-```python
-from imgsize.core import ImageSize
-from imgsize.formats import jpg, gif, png, bmp
-
-imgsize = ImageSize()
-imgsize.register(jpg.get_size)
-imgsize.register(gif.get_size)
-imgsize.register(png.get_size)
-imgsize.register(bmp.get_size)
-imgsize.register(get_size_example)
-
-with io.open('/path/to/image', 'rb') as fobj:
-    width, height = imgsize.get_size(fobj)
+pip install '.[test]'
+pytest python-tests
 ```
