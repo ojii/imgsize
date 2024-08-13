@@ -80,3 +80,10 @@ The following must be run in a virtual env:
 pip install '.[test]'
 pytest python-tests
 ```
+
+## Release
+
+1. Change the version number in `Cargo.toml`
+2. Push to the main branch on GitHub (preferably via Pull Request)
+3. Create a Release (git tag) on GitHub
+4. Release will automatically be pushed to PyPI
