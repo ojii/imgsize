@@ -118,8 +118,11 @@ fn imgsize(m: &Bound<'_, PyModule>) -> PyResult<()> {
 mod tests {
     use super::*;
     use paste::paste;
-    macro_rules! define_test {
-        ($name:ident) => {
+    use std::collections::HashSet;
+    use std::path::Path;
+
+    macro_rules! define_tests {
+        (impl $name:ident) => {
             paste! {
                 #[test]
                 fn [<test_ $name>]() {
@@ -138,15 +141,32 @@ mod tests {
                 }
             }
         };
+        (impl $name:ident, $($rest:ident),+) => {
+            define_tests!(impl $name);
+            define_tests!(impl $($rest),+);
+        };
+        ($($names:ident),+) => {
+            define_tests!(impl $($names),+);
+
+            #[test]
+            fn test_no_missing_tests() {
+                let expected: HashSet<String> = Path::new(file!())
+                    .parent()
+                    .expect("bad path").join("test-data")
+                    .read_dir()
+                    .expect("failed to read test data dir")
+                    .map(|entry| entry.expect("bad dir entry").path())
+                    .filter(|p| p.extension().map(|ext| ext == "input").unwrap_or_default())
+                    .map(|p| p.file_stem().expect("no file stem").to_str().expect("failed to convert to str").to_string())
+                    .collect();
+                let mut tested = HashSet::new();
+                $(
+                    tested.insert(stringify!($names).to_string());
+                )+
+                assert_eq!(tested, expected);
+            }
+        };
     }
 
-    define_test!(bmp);
-    define_test!(gifanim);
-    define_test!(gif);
-    define_test!(jpg);
-    define_test!(jpeg);
-    define_test!(png);
-    define_test!(apng);
-    define_test!(avif);
-    define_test!(avis);
+    define_tests!(bmp, gif, gifanim, gifanim2, jpg, jpeg, png, apng, avif, avis);
 }
