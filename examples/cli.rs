@@ -22,7 +22,7 @@ pub fn main() -> io::Result<()> {
         match imgsize::get_size(&buffer[..read]) {
             Some(size) => println!(
                 "{}: {}x{}, {}, animated={}",
-                name, size.width, size.height, size.mime_type, size.is_animated
+                name, size.width, size.height, size.mime_type, size.animation
             ),
             None => println!("{}: unsupported format", name),
         }

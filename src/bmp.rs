@@ -3,7 +3,7 @@ use std::io::{Seek, SeekFrom};
 use byteorder::{LittleEndian, ReadBytesExt};
 
 use crate::utils::cursor_parser;
-use crate::Size;
+use crate::{Animation, Size};
 
 const MIME_TYPE: &str = "image/bmp";
 
@@ -19,7 +19,7 @@ pub fn get_size(data: &[u8]) -> Option<Size> {
                     width as u64,
                     height as u64,
                     MIME_TYPE.to_string(),
-                    false,
+                    Animation::No,
                 )))
             }
             40 | 64 | 108 | 124 => {
@@ -29,7 +29,12 @@ pub fn get_size(data: &[u8]) -> Option<Size> {
                 if cursor.read_u8()? == 0xff {
                     height = 4294967296 - height;
                 }
-                Ok(Some(Size::new(width, height, MIME_TYPE.to_string(), false)))
+                Ok(Some(Size::new(
+                    width,
+                    height,
+                    MIME_TYPE.to_string(),
+                    Animation::No,
+                )))
             }
             _ => Ok(None),
         }

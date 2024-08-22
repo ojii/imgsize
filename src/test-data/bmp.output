@@ -2,5 +2,5 @@
     "width": 512,
     "height": 512,
     "mime_type": "image/bmp",
-    "is_animated": false
+    "animation": false
 }

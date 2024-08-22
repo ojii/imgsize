@@ -16,18 +16,18 @@ Supported formats:
 ## Usage
 
 ```python
-from imgsize import get_size
+from imgsize import get_size, Size, Animation
 
 some_image_data: bytes = ...
 
-size = get_size(some_image_data)
+size: Size | None = get_size(some_image_data)
 if size is None:
     print("Could not handle data")
 else:
-    size.width
-    size.height
-    size.mime_type
-    size.is_animated
+    size.width: int
+    size.height: int
+    size.mime_type: str
+    size.animation: Animation
 ```
 
 You should not pass the entire image data, the first kilobyte or so should suffice for most formats, other than GIF
@@ -42,7 +42,7 @@ is an animated image or not, otherwise returns None.
 
 #### `imgsize.Size`
 
-A class with four properties: `width: int`, `height: int`, `mime_type: str`, `is_animated: bool`.
+A class with four properties: `width: int`, `height: int`, `mime_type: str`, `animation: Animation`.
 
 Instances of `imgsize.Size` are equatable, hashable and iterable (yielding `width` and `height`).
 

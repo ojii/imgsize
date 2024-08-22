@@ -1,19 +1,24 @@
 from typing import Any, Iterable, TypedDict
 
+class Animation:
+    class Yes: ...
+    class No: ...
+    class Unknown: ...
+
 class SizeDict(TypedDict):
     width: int
     height: int
     mime_type: int
-    is_animated: int
+    animation: Animation
 
 class Size:
     width: int
     height: int
     mime_type: int
-    is_animated: int
+    animation: Animation
 
     def __init__(
-        self, width: int, height: int, mime_type: str, is_animated: bool
+        self, width: int, height: int, mime_type: str, animation: Animation
     ) -> None: ...
     def as_dict(self) -> SizeDict: ...
     def __repr__(self) -> str: ...
