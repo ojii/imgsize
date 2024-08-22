@@ -10,23 +10,50 @@ use pyo3::types::PyDict;
 #[cfg(test)]
 use serde::Deserialize;
 use std::array::IntoIter;
-use std::collections::hash_map::DefaultHasher;
-use std::hash::{Hash, Hasher};
+use std::fmt::{Display, Formatter};
 
-#[pyclass(get_all)]
+#[pyclass(eq, eq_int)]
+#[derive(Debug, Eq, PartialEq, Hash, Clone)]
+pub enum Animation {
+    Yes,
+    No,
+    Unknown,
+}
+
+impl From<bool> for Animation {
+    fn from(value: bool) -> Self {
+        if value {
+            Self::Yes
+        } else {
+            Self::No
+        }
+    }
+}
+
+impl Display for Animation {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        f.write_str(match self {
+            Animation::Yes => "yes",
+            Animation::No => "no",
+            Animation::Unknown => "unknown",
+        })
+    }
+}
+
+#[pyclass(get_all, eq, hash, frozen)]
 #[derive(Debug, Eq, PartialEq, Hash)]
 #[cfg_attr(test, derive(Deserialize))]
 pub struct Size {
     pub width: u64,
     pub height: u64,
     pub mime_type: String,
-    pub is_animated: bool,
+    pub is_animated: Animation,
 }
 
 #[pymethods]
 impl Size {
     #[new]
-    fn new(width: u64, height: u64, mime_type: String, is_animated: bool) -> Self {
+    fn new(width: u64, height: u64, mime_type: String, is_animated: Animation) -> Self {
         Self {
             width,
             height,
@@ -39,21 +66,11 @@ impl Size {
         format!("{:?}", self)
     }
 
-    fn __eq__(&self, other: &Self) -> bool {
-        self == other
-    }
-
     fn __iter__(slf: PyRef<'_, Self>) -> PyResult<Py<SizeIter>> {
         let itr = SizeIter {
             inner: [slf.width, slf.height].into_iter(),
         };
         Py::new(slf.py(), itr)
-    }
-
-    fn __hash__(&self) -> u64 {
-        let mut hasher = DefaultHasher::new();
-        self.hash(&mut hasher);
-        hasher.finish()
     }
 
     fn as_dict(&self) -> PyResult<Py<PyDict>> {
@@ -62,7 +79,7 @@ impl Size {
             dict.set_item("width", self.width)?;
             dict.set_item("height", self.height)?;
             dict.set_item("mime_type", self.mime_type.clone())?;
-            dict.set_item("is_animated", self.is_animated)?;
+            dict.set_item("is_animated", self.is_animated.clone().into_py(py))?;
             Ok(dict.unbind())
         })
     }
@@ -111,6 +128,7 @@ fn py_get_size(data: &[u8]) -> PyResult<Option<Size>> {
 fn imgsize(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(py_get_size, m)?)?;
     m.add_class::<Size>()?;
+    m.add_class::<Animation>()?;
     Ok(())
 }
 
@@ -118,8 +136,48 @@ fn imgsize(m: &Bound<'_, PyModule>) -> PyResult<()> {
 mod tests {
     use super::*;
     use paste::paste;
+    use serde::{de, Deserialize, Deserializer};
     use std::collections::HashSet;
+    use std::fmt::Formatter;
     use std::path::Path;
+
+    struct AnimationVisitor;
+
+    impl<'de> de::Visitor<'de> for AnimationVisitor {
+        type Value = Animation;
+
+        fn expecting(&self, formatter: &mut Formatter) -> std::fmt::Result {
+            formatter.write_str("'yes', 'no' or 'unknown' or a boolean")
+        }
+
+        fn visit_bool<E>(self, v: bool) -> Result<Self::Value, E>
+        where
+            E: de::Error,
+        {
+            Ok(Animation::from(v))
+        }
+
+        fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
+        where
+            E: de::Error,
+        {
+            match v {
+                "yes" => Ok(Animation::Yes),
+                "no" => Ok(Animation::No),
+                "unknown" => Ok(Animation::Unknown),
+                _ => Err(E::custom(format!("Unexpected value: {}", v))),
+            }
+        }
+    }
+
+    impl<'de> Deserialize<'de> for Animation {
+        fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+        where
+            D: Deserializer<'de>,
+        {
+            deserializer.deserialize_any(AnimationVisitor)
+        }
+    }
 
     macro_rules! define_tests {
         (impl $name:ident) => {

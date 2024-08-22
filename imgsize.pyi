@@ -1,5 +1,9 @@
 from typing import Any, Iterable, TypedDict
 
+class Animation:
+    class Yes: ...
+    class No: ...
+    class Unknown: ...
 
 class SizeDict(TypedDict):
     width: int
