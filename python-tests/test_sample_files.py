@@ -1,9 +1,7 @@
 import json
-
 import pytest
-from conftest import ROOT
 
-BYTES_TO_READ = 1024
+from conftest import ROOT
 
 
 def find_examples():
@@ -12,7 +10,7 @@ def find_examples():
         output_path = input_path.with_suffix('.output')
         if not output_path.exists(): continue
         with input_path.open('rb') as fobj:
-            data = fobj.read(BYTES_TO_READ)
+            data = fobj.read()
         with output_path.open('r') as fobj:
             output = json.load(fobj)
         yield pytest.param(data, output, id=input_path.stem)
