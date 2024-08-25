@@ -1,6 +1,6 @@
 import json
-import pytest
 
+import pytest
 from conftest import ROOT
 
 
@@ -14,7 +14,12 @@ def find_examples():
             data = fobj.read()
         with output_path.open("r") as fobj:
             output = json.load(fobj)
-        yield pytest.param(data, output, id=input_path.stem)
+        yield pytest.param(data, remove_comments(output), id=input_path.stem)
+
+
+def remove_comments(data):
+    data.pop("comment", None)
+    return data
 
 
 @pytest.mark.parametrize("input,output", find_examples())
