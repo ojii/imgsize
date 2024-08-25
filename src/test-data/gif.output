@@ -2,5 +2,6 @@
   "width": 250,
   "height": 297,
   "mime_type": "image/gif",
-  "is_animated": false
+  "is_animated": false,
+  "comment": "non animated gif without Application Extension or Graphic Control Extension"
 }
