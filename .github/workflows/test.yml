@@ -15,6 +15,7 @@ jobs:
           rustup update
           rustup component add clippy
           rustup install stable
+          pipx install ruff
       - name: Toolchain info
         run: |
           cargo --version --verbose
@@ -24,6 +25,8 @@ jobs:
         run: |
           cargo fmt -- --check
           cargo clippy -- --deny warnings
+          ruff check --no-fix
+          ruff format --check
       - name: Rust Test
         run: |
           cargo check
