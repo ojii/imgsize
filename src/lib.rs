@@ -57,7 +57,7 @@ impl Size {
     }
 
     fn as_dict(&self) -> PyResult<Py<PyDict>> {
-        Python::with_gil(|py| {
+        Python::attach(|py| {
             let dict = PyDict::new(py);
             dict.set_item("width", self.width)?;
             dict.set_item("height", self.height)?;

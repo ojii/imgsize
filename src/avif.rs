@@ -109,11 +109,11 @@ impl<'a> BMFFBox<'a> {
         })
     }
 
-    fn find_inner_box_after(&self, box_type: &[u8; 4], skipping: usize) -> Option<BMFFBox> {
+    fn find_inner_box_after(&self, box_type: &[u8; 4], skipping: usize) -> Option<BMFFBox<'_>> {
         BMFFBoxIter::new(self.data.get(skipping..)?).find(|bfmmbox| bfmmbox.box_type == box_type)
     }
 
-    fn find_inner_box(&self, box_type: &[u8; 4]) -> Option<BMFFBox> {
+    fn find_inner_box(&self, box_type: &[u8; 4]) -> Option<BMFFBox<'_>> {
         self.find_inner_box_after(box_type, 0)
     }
 }
