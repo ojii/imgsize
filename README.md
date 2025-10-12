@@ -48,6 +48,13 @@ Instances of `imgsize.Size` are equatable, hashable and iterable (yielding `widt
 
 Instances of `imgsize.Size` have a `as_dict()` method which returns the properties as a dictionary.
 
+#### `imgsize.Animation`
+
+An enum with three variants: `Animation.Yes`, `Animation.No` and `Animation.Unknown`. The unknown case
+is used when the data given was insufficient to determine whether this is an animated image or not. The
+treatment of `Animation.Unknown` will depend on your use-case, but one strategy would be to call
+`imgsize.get_size` again with more data.
+
 ## Notes
 
 `imgsize` does not validate whether the data passed is a valid image or not. The intended use of
