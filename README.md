@@ -30,7 +30,8 @@ else:
     size.is_animated
 ```
 
-You should not pass the entire image data, the first kilobyte or so should suffice.
+You should not pass the entire image data, the first kilobyte or so should suffice for most formats, other than GIF
+where a larger amount of data may be required to determine whether the image is animated or not.
 
 ### API
 
@@ -59,6 +60,11 @@ that does actual image parsing to determine if the data is actually an image.
 `imgsize` only supports a few formats, the supported formats is mostly based on what browsers support,
 and does not necessarily support all features or variants of those formats, as a result, there might be
 false positives and false negatives.
+
+## Example CLI
+
+You can use `cargo example --cli` for a simple command line tool to try out this library. See
+`cargo example --cli -- --help` for details.
 
 ## Building
 

@@ -168,5 +168,5 @@ mod tests {
         };
     }
 
-    define_tests!(bmp, gif, gifanim, gifanim2, jpg, jpeg, png, apng, avif, avis);
+    define_tests!(bmp, gif, gif2, gifanim, gifanim2, jpg, jpeg, png, apng, avif, avis);
 }

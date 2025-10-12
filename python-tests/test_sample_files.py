@@ -3,8 +3,6 @@ import json
 import pytest
 from conftest import ROOT
 
-BYTES_TO_READ = 1024
-
 
 def find_examples():
     test_data_dir = ROOT / "src" / "test-data"
@@ -13,10 +11,15 @@ def find_examples():
         if not output_path.exists():
             continue
         with input_path.open("rb") as fobj:
-            data = fobj.read(BYTES_TO_READ)
+            data = fobj.read()
         with output_path.open("r") as fobj:
             output = json.load(fobj)
-        yield pytest.param(data, output, id=input_path.stem)
+        yield pytest.param(data, remove_comments(output), id=input_path.stem)
+
+
+def remove_comments(data):
+    data.pop("comment", None)
+    return data
 
 
 @pytest.mark.parametrize("input,output", find_examples())
