@@ -3,7 +3,7 @@ use std::io::{Read, Seek, SeekFrom};
 use byteorder::{BigEndian, ReadBytesExt};
 
 use crate::utils::cursor_parser;
-use crate::Size;
+use crate::{Animation, Size};
 
 const MIME_TYPE: &str = "image/png";
 
@@ -12,7 +12,7 @@ pub fn get_size(data: &[u8]) -> Option<Size> {
         cursor.seek(SeekFrom::Start(8))?;
         let mut chunk_type_buf = [0u8; 4];
         let mut size = None;
-        let mut animated = false;
+        let mut animated = Animation::No;
         loop {
             let chunk_length = cursor.read_u32::<BigEndian>()?;
             cursor.read_exact(&mut chunk_type_buf)?;
@@ -25,14 +25,14 @@ pub fn get_size(data: &[u8]) -> Option<Size> {
                     let width = cursor.read_u32::<BigEndian>()?;
                     let height = cursor.read_u32::<BigEndian>()?;
                     size = Some((width, height));
-                    if animated {
+                    if animated == Animation::Yes {
                         break;
                     }
                     cursor.seek(SeekFrom::Current(chunk_length as i64 - 4))?;
                 }
                 // acTL
                 [0x61, 0x63, 0x54, 0x4c] => {
-                    animated = true;
+                    animated = Animation::Yes;
                     if size.is_some() {
                         break;
                     }

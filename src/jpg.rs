@@ -3,7 +3,7 @@ use std::io::{Seek, SeekFrom};
 use byteorder::{BigEndian, ReadBytesExt};
 
 use crate::utils::cursor_parser;
-use crate::Size;
+use crate::{Animation, Size};
 
 const MIME_TYPE: &str = "image/jpeg";
 const START_OF_FRAMES: [u8; 13] = [
@@ -23,7 +23,7 @@ pub fn get_size(data: &[u8]) -> Option<Size> {
                     width as u64,
                     height as u64,
                     MIME_TYPE.to_string(),
-                    false,
+                    Animation::No,
                 )));
             } else {
                 let length = cursor.read_u16::<BigEndian>()?;

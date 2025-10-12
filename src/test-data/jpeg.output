@@ -2,5 +2,5 @@
   "width": 800,
   "height":450,
   "mime_type": "image/jpeg",
-  "is_animated": false
+  "animation": false
 }
