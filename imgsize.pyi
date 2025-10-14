@@ -8,13 +8,13 @@ class Animation:
 class SizeDict(TypedDict):
     width: int
     height: int
-    mime_type: int
+    mime_type: str
     animation: Animation
 
 class Size:
     width: int
     height: int
-    mime_type: int
+    mime_type: str
     animation: Animation
 
     def __init__(
