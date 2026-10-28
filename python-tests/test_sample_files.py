@@ -40,6 +40,6 @@ def animation(imgsize, v):
             assert False, "unexpected value: {value!r}".format(value=value)
 
 
-@pytest.mark.parametrize("input,output", find_examples())
+@pytest.mark.parametrize("input,output", list(find_examples()))
 def test_sample_files(input, output, imgsize):
     assert imgsize.get_size(input).as_dict() == output(imgsize)
