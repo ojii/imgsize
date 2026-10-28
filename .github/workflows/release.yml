@@ -37,12 +37,13 @@ jobs:
           - runner: ubuntu-22.04
             target: ppc64le
         python:
-          - "3.10"
           - "3.11"
           - "3.12"
           - "3.13"
           - "3.14"
           - "3.14t"
+          - "3.15"
+          - "3.15t"
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v6
@@ -75,12 +76,13 @@ jobs:
           - runner: ubuntu-22.04
             target: armv7
         python:
-          - "3.10"
           - "3.11"
           - "3.12"
           - "3.13"
           - "3.14"
           - "3.14t"
+          - "3.15"
+          - "3.15t"
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v6
@@ -109,12 +111,13 @@ jobs:
           - runner: windows-latest
             target: x86
         python:
-          - "3.10"
           - "3.11"
           - "3.12"
           - "3.13"
           - "3.14"
           - "3.14t"
+          - "3.15"
+          - "3.15t"
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v6
@@ -143,12 +146,13 @@ jobs:
           - runner: macos-15
             target: aarch64
         python:
-          - "3.10"
           - "3.11"
           - "3.12"
           - "3.13"
           - "3.14"
           - "3.14t"
+          - "3.15"
+          - "3.15t"
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v6

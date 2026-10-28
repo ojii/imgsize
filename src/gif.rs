@@ -23,7 +23,7 @@ pub fn get_size(data: &[u8]) -> Option<Size> {
             cursor.seek(SeekFrom::Current(size))?;
         }
         let animation = detect_animation(&mut cursor)?;
-        Ok(animation.map(|animation| Size::new(width, height, MIME_TYPE.to_string(), animation)))
+        Ok(animation.map(|animation| Size::new(width, height, MIME_TYPE.to_string(), &animation)))
     })
 }
 
