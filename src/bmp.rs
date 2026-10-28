@@ -19,7 +19,7 @@ pub fn get_size(data: &[u8]) -> Option<Size> {
                     width as u64,
                     height as u64,
                     MIME_TYPE.to_string(),
-                    Animation::No,
+                    &Animation::No,
                 )))
             }
             40 | 64 | 108 | 124 => {
@@ -33,7 +33,7 @@ pub fn get_size(data: &[u8]) -> Option<Size> {
                     width,
                     height,
                     MIME_TYPE.to_string(),
-                    Animation::No,
+                    &Animation::No,
                 )))
             }
             _ => Ok(None),

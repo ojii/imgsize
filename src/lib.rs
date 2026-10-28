@@ -13,7 +13,7 @@ use std::array::IntoIter;
 use std::fmt::{Display, Formatter};
 
 #[pyclass(eq, eq_int)]
-#[derive(Debug, Eq, PartialEq, Hash, Clone)]
+#[derive(Debug, Eq, PartialEq, Hash, Copy, Clone)]
 pub enum Animation {
     Yes,
     No,
@@ -53,12 +53,12 @@ pub struct Size {
 #[pymethods]
 impl Size {
     #[new]
-    fn new(width: u64, height: u64, mime_type: String, animation: Animation) -> Self {
+    fn new(width: u64, height: u64, mime_type: String, animation: &Animation) -> Self {
         Self {
             width,
             height,
             mime_type,
-            animation,
+            animation: *animation,
         }
     }
 
@@ -79,7 +79,7 @@ impl Size {
             dict.set_item("width", self.width)?;
             dict.set_item("height", self.height)?;
             dict.set_item("mime_type", self.mime_type.clone())?;
-            dict.set_item("animation", self.animation.clone())?;
+            dict.set_item("animation", self.animation)?;
             Ok(dict.unbind())
         })
     }
